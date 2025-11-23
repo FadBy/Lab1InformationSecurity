@@ -49,11 +49,9 @@ jobs:
       run: |
         mvn clean compile
         mvn spotbugs:check
-      continue-on-error: true
       
     - name: Generate SpotBugs report
       run: mvn spotbugs:spotbugs
-      continue-on-error: true
       
     - name: Upload SpotBugs report
       uses: actions/upload-artifact@v4
@@ -82,7 +80,6 @@ jobs:
       run: |
         mvn clean
         mvn org.owasp:dependency-check-maven:check
-      continue-on-error: true
       
     - name: Upload Dependency-Check report
       uses: actions/upload-artifact@v4
@@ -103,7 +100,7 @@ jobs:
             const report = JSON.parse(fs.readFileSync(path, 'utf8'));
             const vulnerabilities = report.dependencies?.filter(dep => dep.vulnerabilities?.length > 0) || [];
             if (vulnerabilities.length > 0) {
-              let comment = '## 🔒 OWASP Dependency-Check Results\n\n';
+              let comment = '## OWASP Dependency-Check Results\n\n';
               comment += `Found ${vulnerabilities.length} dependencies with vulnerabilities:\n\n`;
               vulnerabilities.forEach(dep => {
                 comment += `- **${dep.fileName}**: ${dep.vulnerabilities.length} vulnerability(ies)\n`;
@@ -125,7 +122,7 @@ jobs:
     - name: Security scan summary
       run: |
         echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ SAST (SpotBugs) scan completed" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ SCA (OWASP Dependency-Check) scan completed" >> $GITHUB_STEP_SUMMARY
+        echo "- SAST (SpotBugs) scan completed" >> $GITHUB_STEP_SUMMARY
+        echo "- SCA (OWASP Dependency-Check) scan completed" >> $GITHUB_STEP_SUMMARY
         echo "Check artifacts for detailed reports" >> $GITHUB_STEP_SUMMARY
 

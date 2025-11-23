@@ -1,5 +1,6 @@
 package com.infosec.secureapi.entity;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@SuppressFBWarnings(value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"}, justification = "JPA entities require direct field access for proper ORM functionality")
 public class DataItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

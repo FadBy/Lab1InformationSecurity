@@ -28,7 +28,7 @@ public class EnvConfig implements ApplicationContextInitializer<ConfigurableAppl
             if (!envMap.isEmpty()) {
                 MapPropertySource propertySource = new MapPropertySource("dotenv", envMap);
                 environment.getPropertySources().addFirst(propertySource);
-                System.out.println("✓ .env file loaded successfully (" + envMap.size() + " variables)");
+                System.out.println(".env file loaded successfully (" + envMap.size() + " variables)");
             }
         } catch (Exception e) {
             System.err.println("Warning: Could not load .env file: " + e.getMessage());
