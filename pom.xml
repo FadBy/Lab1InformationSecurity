@@ -160,7 +160,6 @@
                     </formats>
                     <nvdApiKey>494d5174-2b89-42ad-ac77-6e750b0b6cad</nvdApiKey>
                     <nvdValidForHours>720</nvdValidForHours>
-                    <cveValidForHours>720</cveValidForHours>
                     <ossIndexUsername>nvxajiehid@rambler.ru</ossIndexUsername>
                     <ossIndexPassword>f9fe57a2d7e2fc0d1a262bcaf3441924e7aa7ac2</ossIndexPassword>
                 </configuration>

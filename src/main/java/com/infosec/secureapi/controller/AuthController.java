@@ -2,7 +2,6 @@ package com.infosec.secureapi.controller;
 
 import com.infosec.secureapi.dto.LoginRequest;
 import com.infosec.secureapi.dto.LoginResponse;
-import com.infosec.secureapi.dto.RegisterRequest;
 import com.infosec.secureapi.entity.User;
 import com.infosec.secureapi.service.DataService;
 import com.infosec.secureapi.service.JwtService;
@@ -15,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -34,54 +34,43 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        try {
-            User newUser = userService.createUser(
-                    registerRequest.getUsername(),
-                    registerRequest.getPassword()
-            );
-
-            UserDetails userDetails = userService.loadUserByUsername(newUser.getUsername());
-            String token = jwtService.generateToken(userDetails);
-
-            LoginResponse response = new LoginResponse();
-            response.setToken(token);
-            response.setUsername(DataService.escapeHtml(newUser.getUsername()));
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Username already exists");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Registration failed: " + e.getMessage());
-        }
-    }
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        boolean isNewUser = false;
+        User user;
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()
-                    )
+            user = userService.findByUsername(loginRequest.getUsername());
+        } catch (UsernameNotFoundException ex) {
+            user = userService.createUser(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
             );
-
-            User user = userService.findByUsername(loginRequest.getUsername());
-            UserDetails userDetails = userService.loadUserByUsername(user.getUsername());
-            String token = jwtService.generateToken(userDetails);
-
-            LoginResponse response = new LoginResponse();
-            response.setToken(token);
-            response.setUsername(DataService.escapeHtml(user.getUsername()));
-
-            return ResponseEntity.ok(response);
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401)
-                    .body("Invalid username or password");
+            isNewUser = true;
         }
+
+        if (!isNewUser) {
+            try {
+                authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(
+                                loginRequest.getUsername(),
+                                loginRequest.getPassword()
+                        )
+                );
+            } catch (BadCredentialsException e) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid username or password");
+            }
+        }
+
+        UserDetails userDetails = userService.loadUserByUsername(user.getUsername());
+        String token = jwtService.generateToken(userDetails);
+
+        LoginResponse response = new LoginResponse();
+        response.setToken(token);
+        response.setUsername(DataService.escapeHtml(user.getUsername()));
+
+        HttpStatus status = isNewUser ? HttpStatus.CREATED : HttpStatus.OK;
+        return ResponseEntity.status(status).body(response);
     }
 }
 
