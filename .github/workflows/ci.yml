@@ -88,8 +88,6 @@ jobs:
       run: |
         mvn clean
         mvn org.owasp:dependency-check-maven:check
-      env:
-        NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
       
     - name: Upload Dependency-Check report
       uses: actions/upload-artifact@v4
@@ -98,31 +96,6 @@ jobs:
         name: dependency-check-report
         path: target/dependency-check-report.*
         retention-days: 30
-        
-    - name: Comment PR with vulnerabilities
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          const path = 'target/dependency-check-report.json';
-          if (fs.existsSync(path)) {
-            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
-            const vulnerabilities = report.dependencies?.filter(dep => dep.vulnerabilities?.length > 0) || [];
-            if (vulnerabilities.length > 0) {
-              let comment = '## OWASP Dependency-Check Results\n\n';
-              comment += `Found ${vulnerabilities.length} dependencies with vulnerabilities:\n\n`;
-              vulnerabilities.forEach(dep => {
-                comment += `- **${dep.fileName}**: ${dep.vulnerabilities.length} vulnerability(ies)\n`;
-              });
-              github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: comment
-              });
-            }
-          }
 
   security-summary:
     runs-on: ubuntu-latest
